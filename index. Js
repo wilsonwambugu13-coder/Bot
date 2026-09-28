@@ -1,0 +1,39 @@
+const express = require("express");
+
+const app = express();
+app.use(express.json());
+
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "my_verify_token";
+
+// WhatsApp webhook verification
+app.get("/webhook", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("Webhook verified!");
+    res.status(200).send(challenge);
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+// Receive WhatsApp messages
+app.post("/webhook", (req, res) => {
+  console.log("WhatsApp message received:");
+  console.log(JSON.stringify(req.body, null, 2));
+
+  res.sendStatus(200);
+});
+
+// Health check
+app.get("/", (req, res) => {
+  res.send("WhatsApp Bot is running! 🤖");
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Bot running on port ${PORT}`);
+});
